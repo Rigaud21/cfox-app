@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #161616;
+    color: #ffffff;
+    font-family: 'Barlow', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #161616;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #2e2e2e;
+    border-radius: 0;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #C8FF00;
+  }
+
+  ::selection {
+    background: #C8FF00;
+    color: #161616;
+  }
+}
+
+@layer components {
+  .headline {
+    @apply font-barlow-condensed font-black uppercase tracking-tight;
+  }
+
+  .btn-primary {
+    @apply bg-[#C8FF00] text-[#161616] font-barlow-condensed font-black uppercase tracking-wider px-6 py-3 text-sm transition-all duration-150 hover:bg-white active:scale-95;
+  }
+
+  .btn-ghost {
+    @apply border border-[#C8FF00] text-[#C8FF00] font-barlow-condensed font-black uppercase tracking-wider px-6 py-3 text-sm transition-all duration-150 hover:bg-[#C8FF00] hover:text-[#161616] active:scale-95;
+  }
+
+  .card {
+    @apply bg-[#1e1e1e] border border-[#2e2e2e] transition-colors duration-200 hover:border-[#C8FF00]/40;
+  }
+
+  .form-input {
+    @apply w-full bg-[#161616] border border-[#2e2e2e] text-white font-barlow px-4 py-3 text-sm placeholder-white/30 focus:outline-none focus:border-[#C8FF00] transition-colors duration-150;
+  }
+
+  .form-label {
+    @apply font-barlow-condensed font-bold uppercase text-xs tracking-widest text-white/50 mb-1 block;
+  }
+}
