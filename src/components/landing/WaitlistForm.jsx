@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { CheckCircle, ArrowRight, Loader } from 'lucide-react'
+import { CheckCircle, ArrowRight, Loader, AlertCircle } from 'lucide-react'
+import { supabase } from '../../supabaseClient'
 
 const industries = [
   'Technology', 'Retail & E-commerce', 'Healthcare', 'Professional Services',
@@ -28,6 +29,7 @@ export default function WaitlistForm() {
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
+  const [submitError, setSubmitError] = useState(null)
 
   const validate = () => {
     const e = {}
@@ -44,14 +46,42 @@ export default function WaitlistForm() {
   const handleChange = (e) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
     if (errors[e.target.name]) setErrors((er) => ({ ...er, [e.target.name]: null }))
+    if (submitError) setSubmitError(null)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const errs = validate()
     if (Object.keys(errs).length) { setErrors(errs); return }
+
     setLoading(true)
-    setTimeout(() => { setLoading(false); setSubmitted(true) }, 1400)
+    setSubmitError(null)
+
+    const { error } = await supabase.from('waitlist').insert([{
+      first_name: form.firstName.trim(),
+      last_name: form.lastName.trim(),
+      email: form.email.trim().toLowerCase(),
+      phone: form.phone.trim() || null,
+      business_name: form.businessName.trim(),
+      industry: form.industry,
+      revenue_range: form.revenueRange,
+      accounting_tool: form.accountingTool,
+    }])
+
+    setLoading(false)
+
+    if (error) {
+      // Postgres unique violation code
+      if (error.code === '23505') {
+        setSubmitError("You're already on the waitlist with that email. We'll be in touch soon!")
+      } else {
+        setSubmitError('Something went wrong. Please try again in a moment.')
+        console.error('Supabase error:', error)
+      }
+      return
+    }
+
+    setSubmitted(true)
   }
 
   if (submitted) {
@@ -107,6 +137,14 @@ export default function WaitlistForm() {
           {/* Right: form */}
           <form onSubmit={handleSubmit} noValidate>
             <div className="border border-[#2e2e2e] p-6 sm:p-8 bg-[#1e1e1e]">
+
+              {/* Submit error banner */}
+              {submitError && (
+                <div className="flex items-start gap-3 border border-red-500/30 bg-red-500/10 px-4 py-3 mb-6">
+                  <AlertCircle size={15} className="text-red-400 flex-shrink-0 mt-0.5" />
+                  <p className="font-barlow text-sm text-red-400 leading-relaxed">{submitError}</p>
+                </div>
+              )}
 
               {/* Name row */}
               <div className="grid grid-cols-2 gap-4 mb-4">
@@ -227,7 +265,7 @@ export default function WaitlistForm() {
                 {loading ? (
                   <>
                     <Loader size={16} className="animate-spin" />
-                    Submitting...
+                    Saving your spot...
                   </>
                 ) : (
                   <>
