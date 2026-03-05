@@ -44,6 +44,12 @@ export default function Navbar() {
             Pricing
           </button>
           <Link
+            to="/about"
+            className="text-sm font-barlow-condensed font-bold uppercase tracking-wider text-white/60 hover:text-[#C8FF00] transition-colors"
+          >
+            About
+          </Link>
+          <Link
             to="/dashboard"
             className="text-sm font-barlow-condensed font-bold uppercase tracking-wider text-white/60 hover:text-[#C8FF00] transition-colors"
           >
@@ -72,6 +78,9 @@ export default function Navbar() {
           <button onClick={() => scrollTo('pricing')} className="text-left text-sm font-barlow-condensed font-bold uppercase tracking-wider text-white/60 hover:text-[#C8FF00] transition-colors">
             Pricing
           </button>
+          <Link to="/about" onClick={() => setOpen(false)} className="text-sm font-barlow-condensed font-bold uppercase tracking-wider text-white/60 hover:text-[#C8FF00] transition-colors">
+            About
+          </Link>
           <Link to="/dashboard" onClick={() => setOpen(false)} className="text-sm font-barlow-condensed font-bold uppercase tracking-wider text-white/60 hover:text-[#C8FF00] transition-colors">
             Demo
           </Link>
