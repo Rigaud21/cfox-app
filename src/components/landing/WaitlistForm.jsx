@@ -68,6 +68,17 @@ export default function WaitlistForm() {
       accounting_tool: form.accountingTool,
     }])
 
+    if (!error) {
+      await fetch('/api/send-welcome', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: form.firstName.trim(),
+          email: form.email.trim().toLowerCase(),
+        }),
+      })
+    }
+
     setLoading(false)
 
     if (error) {
