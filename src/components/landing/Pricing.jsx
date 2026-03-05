@@ -71,8 +71,8 @@ export default function Pricing() {
             Pricing
           </p>
           <h2 className="font-barlow-condensed font-black uppercase text-5xl sm:text-6xl lg:text-7xl text-white leading-none mb-4">
-            Transparent,{' '}
-            <span className="text-[#C8FF00]">No B.S.</span>
+            Real Intelligence. Real Results.{' '}
+            <span className="text-[#C8FF00]">Built For Every Business.</span>
           </h2>
           <p className="font-barlow text-white/40 text-lg max-w-xl mx-auto">
             No setup fees. No hidden costs. Cancel anytime.
