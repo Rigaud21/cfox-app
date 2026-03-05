@@ -1,17 +1,20 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import {
   LayoutDashboard, TrendingUp, PieChart as PieIcon,
   Bot, Settings, LogOut, Menu, X,
   DollarSign, TrendingDown, ArrowUpRight, Clock, Zap, Percent,
+  Landmark, Loader,
 } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine, PieChart, Pie, Cell,
 } from 'recharts'
 import { useAuth } from '../context/AuthContext'
+import { supabase } from '../supabaseClient'
+import { useLinkToken, usePlaidConnect, usePlaidTransactions } from '../hooks/usePlaid'
 
-/* ─── Data ───────────────────────────────────────────────────── */
+/* ─── Demo Data ──────────────────────────────────────────────── */
 const cashFlowData = [
   { month: 'Jul', income: 45000, expenses: 32000, net: 13000 },
   { month: 'Aug', income: 50000, expenses: 35000, net: 15000 },
@@ -42,11 +45,11 @@ const kpis = [
 ]
 
 const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard'  },
-  { icon: TrendingUp,      label: 'Cash Flow'  },
-  { icon: PieIcon,         label: 'Expenses'   },
-  { icon: Bot,             label: 'AI CFO'     },
-  { icon: Settings,        label: 'Settings'   },
+  { icon: LayoutDashboard, label: 'Overview'  },
+  { icon: TrendingUp,      label: 'Cash Flow' },
+  { icon: PieIcon,         label: 'Expenses'  },
+  { icon: Bot,             label: 'AI CFO'    },
+  { icon: Settings,        label: 'Settings'  },
 ]
 
 /* ─── Chart Tooltip ──────────────────────────────────────────── */
@@ -72,8 +75,53 @@ function ChartTooltip({ active, payload, label }) {
   )
 }
 
+/* ─── Connect Bank Button ────────────────────────────────────── */
+function ConnectBankButton({ onConnected }) {
+  const { linkToken, fetchLinkToken, loading: tokenLoading } = useLinkToken()
+  const [step, setStep] = useState('idle') // idle | fetching | ready
+
+  const { open, ready, connecting } = usePlaidConnect({
+    linkToken,
+    onSuccess: () => {
+      onConnected?.()
+      setStep('idle')
+    },
+  })
+
+  const handleClick = async () => {
+    if (!linkToken) {
+      setStep('fetching')
+      await fetchLinkToken()
+      setStep('ready')
+    } else {
+      open()
+    }
+  }
+
+  useEffect(() => {
+    if (step === 'ready' && ready) {
+      open()
+      setStep('idle')
+    }
+  }, [step, ready, open])
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={tokenLoading || connecting}
+      className="flex items-center gap-2 border border-[#C8FF00]/30 bg-[#C8FF00]/5 hover:bg-[#C8FF00]/10 text-[#C8FF00] font-barlow-condensed font-bold uppercase text-[10px] tracking-wider px-3 py-1.5 transition-colors disabled:opacity-50"
+    >
+      {tokenLoading || connecting
+        ? <Loader size={12} className="animate-spin" />
+        : <Landmark size={12} />
+      }
+      <span className="hidden sm:inline">Connect Bank</span>
+    </button>
+  )
+}
+
 /* ─── Sidebar ────────────────────────────────────────────────── */
-function Sidebar({ active, setActive, open, setOpen, user, onSignOut }) {
+function Sidebar({ active, setActive, open, setOpen, user, onSignOut, businessName }) {
   const email = user?.email ?? ''
   const firstName = user?.user_metadata?.first_name ?? email.split('@')[0] ?? ''
 
@@ -92,6 +140,14 @@ function Sidebar({ active, setActive, open, setOpen, user, onSignOut }) {
           <X size={18} />
         </button>
       </div>
+
+      {businessName && (
+        <div className="px-5 py-3 border-b border-[#2e2e2e]">
+          <p className="font-barlow-condensed font-black uppercase text-xs text-white/70 truncate">
+            {businessName}
+          </p>
+        </div>
+      )}
 
       {/* Nav */}
       <nav className="flex-1 py-4 px-2 space-y-0.5">
@@ -166,12 +222,15 @@ function Sidebar({ active, setActive, open, setOpen, user, onSignOut }) {
 }
 
 /* ─── KPI Cards ──────────────────────────────────────────────── */
-function KPIGrid() {
+function KPIGrid({ bankConnected }) {
   return (
     <div>
-      <h2 className="font-barlow-condensed font-black uppercase text-xl text-white mb-3">
-        Overview
-      </h2>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="font-barlow-condensed font-black uppercase text-xl text-white">Overview</h2>
+        {!bankConnected && (
+          <span className="font-barlow text-[10px] text-white/30 italic">Demo data — connect your bank for live metrics</span>
+        )}
+      </div>
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-px bg-[#2e2e2e]">
         {kpis.map((kpi) => {
           const Icon = kpi.icon
@@ -209,9 +268,9 @@ function KPIGrid() {
 /* ─── Cash Flow Chart ────────────────────────────────────────── */
 function CashFlowSection() {
   const fmt = (v) => `$${(v / 1000).toFixed(0)}K`
-  const avgIncome = Math.round(cashFlowData.reduce((s, d) => s + d.income, 0) / cashFlowData.length)
+  const avgIncome   = Math.round(cashFlowData.reduce((s, d) => s + d.income, 0) / cashFlowData.length)
   const avgExpenses = Math.round(cashFlowData.reduce((s, d) => s + d.expenses, 0) / cashFlowData.length)
-  const avgNet = Math.round(cashFlowData.reduce((s, d) => s + d.net, 0) / cashFlowData.length)
+  const avgNet      = Math.round(cashFlowData.reduce((s, d) => s + d.net, 0) / cashFlowData.length)
 
   return (
     <div className="bg-[#1e1e1e] border border-[#2e2e2e] p-5 sm:p-6">
@@ -224,7 +283,6 @@ function CashFlowSection() {
             Jul 2025 – Mar 2026 · Forecast from Dec
           </p>
         </div>
-        {/* Legend */}
         <div className="hidden sm:flex items-center gap-4">
           {[
             { label: 'Income',   color: '#C8FF00' },
@@ -278,13 +336,12 @@ function CashFlowSection() {
             strokeDasharray="4 4"
             label={{ value: 'Forecast ›', fill: '#555', fontSize: 10, fontFamily: '"Barlow Condensed"' }}
           />
-          <Area type="monotone" dataKey="income"   stroke="#C8FF00" strokeWidth={2} fill="url(#gIncome)"   dot={false} activeDot={{ r: 4, fill: '#C8FF00',  strokeWidth: 0 }} />
-          <Area type="monotone" dataKey="expenses" stroke="#ff4d4d" strokeWidth={2} fill="url(#gExpenses)" dot={false} activeDot={{ r: 4, fill: '#ff4d4d',  strokeWidth: 0 }} />
-          <Area type="monotone" dataKey="net"      stroke="#4dabf7" strokeWidth={2} fill="url(#gNet)"      dot={false} activeDot={{ r: 4, fill: '#4dabf7',  strokeWidth: 0 }} />
+          <Area type="monotone" dataKey="income"   stroke="#C8FF00" strokeWidth={2} fill="url(#gIncome)"   dot={false} activeDot={{ r: 4, fill: '#C8FF00', strokeWidth: 0 }} />
+          <Area type="monotone" dataKey="expenses" stroke="#ff4d4d" strokeWidth={2} fill="url(#gExpenses)" dot={false} activeDot={{ r: 4, fill: '#ff4d4d', strokeWidth: 0 }} />
+          <Area type="monotone" dataKey="net"      stroke="#4dabf7" strokeWidth={2} fill="url(#gNet)"      dot={false} activeDot={{ r: 4, fill: '#4dabf7', strokeWidth: 0 }} />
         </AreaChart>
       </ResponsiveContainer>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-3 gap-px bg-[#2e2e2e] mt-4">
         {[
           { label: 'Avg Income',   value: `$${(avgIncome / 1000).toFixed(1)}K`,   color: '#C8FF00' },
@@ -361,10 +418,7 @@ function ExpenseSection() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span
-                      className="font-barlow-condensed font-black text-sm"
-                      style={{ color: e.color }}
-                    >
+                    <span className="font-barlow-condensed font-black text-sm" style={{ color: e.color }}>
                       ${e.amount.toLocaleString()}
                     </span>
                     <span
@@ -391,16 +445,93 @@ function ExpenseSection() {
   )
 }
 
+/* ─── AI CFO Placeholder ─────────────────────────────────────── */
+function AICFOSection() {
+  return (
+    <div className="bg-[#1e1e1e] border border-[#2e2e2e] p-6 flex flex-col items-center justify-center min-h-[300px]">
+      <div className="w-12 h-12 bg-[#C8FF00]/10 border border-[#C8FF00]/20 flex items-center justify-center mb-4">
+        <Bot size={22} className="text-[#C8FF00]" />
+      </div>
+      <h3 className="font-barlow-condensed font-black uppercase text-xl text-white mb-2">AI CFO Assistant</h3>
+      <p className="font-barlow text-sm text-white/40 text-center max-w-sm">
+        Your AI CFO is being trained on your financial data. This feature will be available once you connect your bank account.
+      </p>
+    </div>
+  )
+}
+
+/* ─── Settings Placeholder ───────────────────────────────────── */
+function SettingsSection({ user }) {
+  const firstName = user?.user_metadata?.first_name ?? ''
+  const lastName = user?.user_metadata?.last_name ?? ''
+  const email = user?.email ?? ''
+
+  return (
+    <div className="bg-[#1e1e1e] border border-[#2e2e2e] p-6">
+      <h3 className="font-barlow-condensed font-black uppercase text-xl text-white mb-6">Account Settings</h3>
+      <div className="space-y-4 max-w-sm">
+        <div>
+          <label className="form-label">First Name</label>
+          <input className="form-input" defaultValue={firstName} readOnly />
+        </div>
+        <div>
+          <label className="form-label">Last Name</label>
+          <input className="form-input" defaultValue={lastName} readOnly />
+        </div>
+        <div>
+          <label className="form-label">Email</label>
+          <input className="form-input" defaultValue={email} readOnly />
+        </div>
+        <p className="font-barlow text-xs text-white/30">
+          Profile editing coming soon.
+        </p>
+      </div>
+    </div>
+  )
+}
+
 /* ─── Page ───────────────────────────────────────────────────── */
 export default function Dashboard() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
-  const [active, setActive] = useState('Dashboard')
+  const [active, setActive] = useState('Overview')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [businessName, setBusinessName] = useState('')
+  const [bankConnected, setBankConnected] = useState(false)
+  const [checkingProfile, setCheckingProfile] = useState(true)
 
-  const firstName = user?.user_metadata?.first_name
-    || user?.email?.split('@')[0]
-    || 'there'
+  const firstName = user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'there'
+
+  // Check business profile and bank connection
+  useEffect(() => {
+    if (!user) return
+
+    async function checkProfile() {
+      const { data: profile } = await supabase
+        .from('business_profiles')
+        .select('business_name, onboarding_complete')
+        .eq('user_id', user.id)
+        .single()
+
+      if (!profile || !profile.onboarding_complete) {
+        navigate('/onboarding')
+        return
+      }
+
+      setBusinessName(profile.business_name || '')
+
+      const { data: conn } = await supabase
+        .from('plaid_connections')
+        .select('item_id')
+        .eq('user_id', user.id)
+        .single()
+
+      setBankConnected(!!conn)
+      setCheckingProfile(false)
+    }
+
+    checkProfile()
+  }, [user, navigate])
 
   const handleSignOut = async () => {
     await signOut()
@@ -409,6 +540,14 @@ export default function Dashboard() {
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+
+  if (checkingProfile) {
+    return (
+      <div className="h-screen bg-[#161616] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#C8FF00] border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#161616]">
@@ -419,6 +558,7 @@ export default function Dashboard() {
         setOpen={setSidebarOpen}
         user={user}
         onSignOut={handleSignOut}
+        businessName={businessName}
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -442,12 +582,17 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#C8FF00] animate-pulse" />
-              <span className="font-barlow-condensed font-bold uppercase text-[10px] tracking-wider text-[#C8FF00] hidden sm:inline">
-                Live
-              </span>
-            </div>
+            {!bankConnected && (
+              <ConnectBankButton onConnected={() => setBankConnected(true)} />
+            )}
+            {bankConnected && (
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#C8FF00] animate-pulse" />
+                <span className="font-barlow-condensed font-bold uppercase text-[10px] tracking-wider text-[#C8FF00] hidden sm:inline">
+                  Bank Connected
+                </span>
+              </div>
+            )}
             <div className="w-7 h-7 bg-[#C8FF00] flex items-center justify-center">
               <span className="font-barlow-condensed font-black text-xs text-[#161616]">
                 {firstName.charAt(0).toUpperCase()}
@@ -456,12 +601,20 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* Main scrollable content */}
+        {/* Main */}
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
-            <KPIGrid />
-            <CashFlowSection />
-            <ExpenseSection />
+            {active === 'Overview' && (
+              <>
+                <KPIGrid bankConnected={bankConnected} />
+                <CashFlowSection />
+                <ExpenseSection />
+              </>
+            )}
+            {active === 'Cash Flow' && <CashFlowSection />}
+            {active === 'Expenses' && <ExpenseSection />}
+            {active === 'AI CFO' && <AICFOSection />}
+            {active === 'Settings' && <SettingsSection user={user} />}
           </div>
         </main>
       </div>

@@ -5,6 +5,7 @@ import LandingPage from './pages/LandingPage'
 import About from './pages/About'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import Onboarding from './pages/Onboarding'
 import Dashboard from './pages/Dashboard'
 
 export default function App() {
@@ -15,6 +16,14 @@ export default function App() {
         <Route path="/about"    element={<About />} />
         <Route path="/login"    element={<Login />} />
         <Route path="/signup"   element={<Signup />} />
+        <Route
+          path="/onboarding"
+          element={
+            <ProtectedRoute>
+              <Onboarding />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/dashboard"
           element={
