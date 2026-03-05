@@ -84,7 +84,7 @@ const founderFacts = [
 
 const storyParagraphs = [
   "I'm 21 years old, born and raised in Miami. I didn't come from money — I came from a family that bet everything on a dream.",
-  "My father is an immigrant who built a restaurant from nothing. I grew up inside that business, making decisions that affected the whole family.",
+  "My parents are immigrants who built a restaurant from nothing. I grew up inside that business, making decisions that affected the whole family.",
   "I watched my parents carry stress no one should carry alone. One day $30,000 in the account. Next morning, under $5,000. No warning, no system, no one to call — just survival mode.",
   "That experience didn't break me — it built me. I started learning everything about business finance. Structuring accounts, credit unions, separating income from expenses, thinking ahead. Essentially becoming the CFO the family never had — at 19, with no formal training.",
   "Then it hit me: millions of families are going through exactly this right now — and they don't have anyone to help them either.",
