@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import LandingPage from './pages/LandingPage'
 import DashboardPage from './pages/DashboardPage'
 
@@ -9,6 +10,7 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
       </Routes>
+      <SpeedInsights />
     </BrowserRouter>
   )
 }

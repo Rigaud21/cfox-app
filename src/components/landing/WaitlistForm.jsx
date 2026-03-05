@@ -89,13 +89,14 @@ export default function WaitlistForm() {
       <section id="waitlist" className="py-24 sm:py-32 border-t border-[#2e2e2e]">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 text-center">
           <CheckCircle size={48} className="text-[#C8FF00] mx-auto mb-6" />
-          <h2 className="font-barlow-condensed font-black uppercase text-5xl text-white mb-4">
-            You're on the list.
+          <h2 className="font-barlow-condensed font-black uppercase text-5xl sm:text-6xl text-white mb-4 leading-none">
+            You're In,{' '}
+            <span className="text-[#C8FF00]">{form.firstName}!</span>
           </h2>
-          <p className="font-barlow text-white/40 text-lg">
-            We'll reach out to{' '}
-            <span className="text-[#C8FF00]">{form.email}</span> when your spot opens up.
-            Average wait time: <span className="text-white">2–4 weeks.</span>
+          <p className="font-barlow text-white/50 text-lg leading-relaxed max-w-xl mx-auto">
+            Thank you for joining the CFO-X waitlist. We'll keep you updated with everything
+            that's coming — early access, launch news, and founding member perks. Stay tuned,
+            this is just the beginning.
           </p>
         </div>
       </section>
