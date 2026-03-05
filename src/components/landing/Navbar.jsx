@@ -55,9 +55,9 @@ export default function Navbar() {
           >
             Demo
           </Link>
-          <button onClick={scrollToWaitlist} className="btn-primary text-xs py-2 px-5">
+          <Link to="/signup" className="btn-primary text-xs py-2 px-5">
             Get Early Access
-          </button>
+          </Link>
         </div>
 
         {/* Mobile hamburger */}
@@ -84,9 +84,9 @@ export default function Navbar() {
           <Link to="/dashboard" onClick={() => setOpen(false)} className="text-sm font-barlow-condensed font-bold uppercase tracking-wider text-white/60 hover:text-[#C8FF00] transition-colors">
             Demo
           </Link>
-          <button onClick={scrollToWaitlist} className="btn-primary text-xs w-full text-center">
+          <Link to="/signup" onClick={() => setOpen(false)} className="btn-primary text-xs w-full text-center">
             Get Early Access
-          </button>
+          </Link>
         </div>
       )}
     </nav>
