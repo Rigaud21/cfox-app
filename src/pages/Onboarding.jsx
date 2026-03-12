@@ -335,14 +335,13 @@ export default function Onboarding() {
     setSaveError(null)
 
     const payload = {
-      user_id:          user.id,
-      business_name:    formData.businessName,
-      industry:         formData.industry,
-      employee_count:   formData.employeeCount,
-      revenue_range:    formData.revenueRange,
-      accounting_tool:  formData.accountingTool,
-      goal:             formData.goal,
-      onboarding_complete: true,
+      user_id:               user.id,
+      business_name:         formData.businessName,
+      industry:              formData.industry,
+      employees:             formData.employeeCount,
+      revenue_range:         formData.revenueRange,
+      accounting_tool:       formData.accountingTool,
+      financial_challenges:  formData.goal,
     }
 
     // Check first — avoids needing a DB-level UNIQUE constraint for upsert
@@ -376,27 +375,8 @@ export default function Onboarding() {
 
   const handleBack = () => setStep(s => s - 1)
 
-  // Profile was already saved at step 2 — just mark complete and advance
-  const handleSkipBank = async () => {
-    setSaving(true)
-    setSaveError(null)
-
-    const { error } = await supabase
-      .from('business_profiles')
-      .update({ onboarding_complete: true })
-      .eq('user_id', user.id)
-
-    // If no row exists yet (edge case), insert a minimal row
-    if (error) {
-      await supabase.from('business_profiles').insert({
-        user_id: user.id,
-        onboarding_complete: true,
-      })
-    }
-
-    setSaving(false)
-    setStep(4)
-  }
+  // Profile was already saved at step 2 — just advance
+  const handleSkipBank = () => setStep(4)
 
   return (
     <div className="min-h-screen bg-[#161616] flex flex-col items-center justify-center px-4 py-12">
