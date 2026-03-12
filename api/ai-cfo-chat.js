@@ -2,43 +2,56 @@ import { createClient } from '@supabase/supabase-js'
 
 export const config = { runtime: 'edge' }
 
+const json = (body, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
+
 export default async function handler(req) {
+  console.log('Key exists:', !!process.env.ANTHROPIC_API_KEY)
+
   if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 })
+    return json({ error: 'Method not allowed' }, 405)
   }
 
-  const { message, userId } = await req.json()
+  try {
+    const { message, userId } = await req.json()
 
-  const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY
-  )
+    if (!message || !userId) {
+      return json({ error: 'Missing message or userId' }, 400)
+    }
 
-  const [{ data: profile }, { data: history }] = await Promise.all([
-    supabase
-      .from('business_profiles')
-      .select('business_name, industry, revenue_range, goal, employee_count')
-      .eq('user_id', userId)
-      .single(),
-    supabase
-      .from('ai_chat_history')
-      .select('role, content')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(10),
-  ])
+    const supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_ANON_KEY
+    )
 
-  const priorMessages = (history || []).reverse().map(h => ({ role: h.role, content: h.content }))
-  const allMessages = [...priorMessages, { role: 'user', content: message }]
+    const [{ data: profile }, { data: history }] = await Promise.all([
+      supabase
+        .from('business_profiles')
+        .select('business_name, industry, revenue_range, financial_challenges, employees')
+        .eq('user_id', userId)
+        .maybeSingle(),
+      supabase
+        .from('ai_chat_history')
+        .select('role, content')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(10),
+    ])
 
-  const systemPrompt = `You are CFO-X, an elite AI Chief Financial Officer for small businesses. You have full context of this business's finances and give direct, confident, CFO-grade advice.
+    const priorMessages = (history || []).reverse().map(h => ({ role: h.role, content: h.content }))
+    const allMessages = [...priorMessages, { role: 'user', content: message }]
+
+    const systemPrompt = `You are CFO-X, an elite AI Chief Financial Officer for small businesses. You have full context of this business's finances and give direct, confident, CFO-grade advice.
 
 Business Profile:
 - Company: ${profile?.business_name || 'the user\'s business'}
 - Industry: ${profile?.industry || 'Not specified'}
 - Annual Revenue Range: ${profile?.revenue_range || 'Not specified'}
-- Employees: ${profile?.employee_count || 'Not specified'}
-- Primary Financial Goal: ${profile?.goal || 'Not specified'}
+- Employees: ${profile?.employees || 'Not specified'}
+- Financial Challenges: ${Array.isArray(profile?.financial_challenges) ? profile.financial_challenges.join(', ') : (profile?.financial_challenges || 'Not specified')}
 
 Current Financial Snapshot (most recent month):
 - Monthly Revenue: $55,200 (+12.4% MoM)
@@ -60,9 +73,6 @@ Your instructions:
 - If asked about growth: reference +12.4% MoM revenue trend.
 - If asked about cash: always mention the 14-month runway and $17,400 monthly net.`
 
-  let aiContent = ''
-
-  try {
     const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -71,7 +81,7 @@ Your instructions:
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 1024,
         system: systemPrompt,
         messages: allMessages,
@@ -81,30 +91,21 @@ Your instructions:
     if (!anthropicRes.ok) {
       const errText = await anthropicRes.text()
       console.error('Anthropic API error:', errText)
-      return new Response(
-        JSON.stringify({ error: 'AI service unavailable. Check ANTHROPIC_API_KEY in Vercel settings.' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      )
+      return json({ error: 'AI service unavailable. Check ANTHROPIC_API_KEY in Vercel settings.' }, 500)
     }
 
     const data = await anthropicRes.json()
-    aiContent = data.content?.[0]?.text || 'Unable to generate a response.'
+    const aiContent = data.content?.[0]?.text || 'Unable to generate a response.'
+
+    // Save both messages
+    await supabase.from('ai_chat_history').insert([
+      { user_id: userId, role: 'user',      content: message   },
+      { user_id: userId, role: 'assistant', content: aiContent },
+    ])
+
+    return json({ response: aiContent })
   } catch (err) {
-    console.error('AI CFO error:', err)
-    return new Response(
-      JSON.stringify({ error: 'Failed to reach AI service.' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    )
+    console.error('AI CFO handler error:', err)
+    return json({ error: `Internal server error: ${err.message}` }, 500)
   }
-
-  // Save both messages
-  await supabase.from('ai_chat_history').insert([
-    { user_id: userId, role: 'user',      content: message   },
-    { user_id: userId, role: 'assistant', content: aiContent },
-  ])
-
-  return new Response(JSON.stringify({ response: aiContent }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' },
-  })
 }
