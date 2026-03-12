@@ -38,6 +38,15 @@ const ACCOUNTING_TOOLS = [
   'None / Manual',
 ]
 
+const CHALLENGES = [
+  { value: 'cash_flow',         label: 'Cash Flow Management' },
+  { value: 'expense_tracking',  label: 'Expense Tracking' },
+  { value: 'grow_revenue',      label: 'Growing Revenue' },
+  { value: 'reduce_expenses',   label: 'Reducing Expenses' },
+  { value: 'raise_capital',     label: 'Raising Capital' },
+  { value: 'profitability',     label: 'Reaching Profitability' },
+]
+
 // ── Step components ──────────────────────────────────────────────────────────
 
 function StepWelcome({ user, onNext }) {
@@ -122,7 +131,7 @@ function StepBusinessProfile({ data, onChange, onNext, onBack }) {
   )
 }
 
-function StepFinancialSetup({ data, onChange, onNext, onBack }) {
+function StepFinancialSetup({ data, onChange, onToggleChallenge, onNext, onBack }) {
   return (
     <div>
       <div className="flex items-center gap-3 mb-8">
@@ -159,19 +168,26 @@ function StepFinancialSetup({ data, onChange, onNext, onBack }) {
           </select>
         </div>
         <div>
-          <label className="form-label">Primary Financial Goal</label>
-          <select
-            className="form-input"
-            value={data.goal}
-            onChange={e => onChange('goal', e.target.value)}
-          >
-            <option value="">Select goal...</option>
-            <option value="cash_flow">Improve Cash Flow</option>
-            <option value="reduce_expenses">Reduce Expenses</option>
-            <option value="grow_revenue">Grow Revenue</option>
-            <option value="raise_capital">Raise Capital</option>
-            <option value="profitability">Reach Profitability</option>
-          </select>
+          <label className="form-label">Financial Challenges <span className="text-white/30 font-normal normal-case">(select all that apply)</span></label>
+          <div className="grid grid-cols-2 gap-2 mt-1">
+            {CHALLENGES.map(({ value, label }) => {
+              const selected = data.financial_challenges.includes(value)
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => onToggleChallenge(value)}
+                  className={`px-3 py-2.5 text-left font-barlow text-xs border transition-colors ${
+                    selected
+                      ? 'border-[#C8FF00] bg-[#C8FF00]/10 text-[#C8FF00]'
+                      : 'border-[#2e2e2e] bg-[#242424] text-white/50 hover:border-white/20 hover:text-white/70'
+                  }`}
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
 
@@ -320,15 +336,24 @@ export default function Onboarding() {
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(null)
   const [formData, setFormData] = useState({
-    businessName: '',
-    industry: '',
-    employeeCount: '',
-    revenueRange: '',
-    accountingTool: '',
-    goal: '',
+    businessName:          '',
+    industry:              '',
+    employeeCount:         '',
+    revenueRange:          '',
+    accountingTool:        '',
+    financial_challenges:  [],
   })
 
   const updateField = (key, val) => setFormData(f => ({ ...f, [key]: val }))
+
+  const toggleChallenge = (value) => {
+    setFormData(prev => ({
+      ...prev,
+      financial_challenges: prev.financial_challenges.includes(value)
+        ? prev.financial_challenges.filter(c => c !== value)
+        : [...prev.financial_challenges, value],
+    }))
+  }
 
   const saveProfile = async () => {
     setSaving(true)
@@ -341,7 +366,7 @@ export default function Onboarding() {
       employees:             formData.employeeCount,
       revenue_range:         formData.revenueRange,
       accounting_tool:       formData.accountingTool,
-      financial_challenges:  formData.goal,
+      financial_challenges:  formData.financial_challenges,
     }
 
     // Check first — avoids needing a DB-level UNIQUE constraint for upsert
@@ -432,6 +457,7 @@ export default function Onboarding() {
             <StepFinancialSetup
               data={formData}
               onChange={updateField}
+              onToggleChallenge={toggleChallenge}
               onNext={handleNext}
               onBack={handleBack}
             />
