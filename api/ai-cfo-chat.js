@@ -1,5 +1,3 @@
-import { createClient } from '@supabase/supabase-js'
-
 export const config = { runtime: 'edge' }
 
 const json = (body, status = 200) =>
@@ -16,42 +14,25 @@ export default async function handler(req) {
   }
 
   try {
-    const { message, userId } = await req.json()
+    const { message, businessContext, history } = await req.json()
 
-    if (!message || !userId) {
-      return json({ error: 'Missing message or userId' }, 400)
+    if (!message) {
+      return json({ error: 'Missing message' }, 400)
     }
 
-    const supabase = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_ANON_KEY
-    )
-
-    const [{ data: profile }, { data: history }] = await Promise.all([
-      supabase
-        .from('business_profiles')
-        .select('business_name, industry, revenue_range, financial_challenges, employees')
-        .eq('user_id', userId)
-        .maybeSingle(),
-      supabase
-        .from('ai_chat_history')
-        .select('role, content')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(10),
-    ])
-
-    const priorMessages = (history || []).reverse().map(h => ({ role: h.role, content: h.content }))
-    const allMessages = [...priorMessages, { role: 'user', content: message }]
+    const ctx = businessContext || {}
+    const challenges = Array.isArray(ctx.financial_challenges)
+      ? ctx.financial_challenges.join(', ')
+      : (ctx.financial_challenges || 'Not specified')
 
     const systemPrompt = `You are CFO-X, an elite AI Chief Financial Officer for small businesses. You have full context of this business's finances and give direct, confident, CFO-grade advice.
 
 Business Profile:
-- Company: ${profile?.business_name || 'the user\'s business'}
-- Industry: ${profile?.industry || 'Not specified'}
-- Annual Revenue Range: ${profile?.revenue_range || 'Not specified'}
-- Employees: ${profile?.employees || 'Not specified'}
-- Financial Challenges: ${Array.isArray(profile?.financial_challenges) ? profile.financial_challenges.join(', ') : (profile?.financial_challenges || 'Not specified')}
+- Company: ${ctx.business_name || 'the user\'s business'}
+- Industry: ${ctx.industry || 'Not specified'}
+- Annual Revenue Range: ${ctx.revenue_range || 'Not specified'}
+- Employees: ${ctx.employees || 'Not specified'}
+- Financial Challenges: ${challenges}
 
 Current Financial Snapshot (most recent month):
 - Monthly Revenue: $55,200 (+12.4% MoM)
@@ -72,6 +53,11 @@ Your instructions:
 - If asked about hiring: factor in $37,800/mo burn and 14-month runway.
 - If asked about growth: reference +12.4% MoM revenue trend.
 - If asked about cash: always mention the 14-month runway and $17,400 monthly net.`
+
+    const allMessages = [
+      ...(history || []),
+      { role: 'user', content: message },
+    ]
 
     const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -95,15 +81,9 @@ Your instructions:
     }
 
     const data = await anthropicRes.json()
-    const aiContent = data.content?.[0]?.text || 'Unable to generate a response.'
+    const response = data.content?.[0]?.text || 'Unable to generate a response.'
 
-    // Save both messages
-    await supabase.from('ai_chat_history').insert([
-      { user_id: userId, role: 'user',      content: message   },
-      { user_id: userId, role: 'assistant', content: aiContent },
-    ])
-
-    return json({ response: aiContent })
+    return json({ response })
   } catch (err) {
     console.error('AI CFO handler error:', err)
     return json({ error: `Internal server error: ${err.message}` }, 500)

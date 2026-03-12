@@ -88,16 +88,30 @@ export default function AICFOChat({ user, profile }) {
     setIsTyping(true)
 
     try {
+      // Send last 10 messages as history context (excluding the one we just added)
+      const history = messages.slice(-10).map(m => ({ role: m.role, content: m.content }))
+
       const res  = await fetch('/api/ai-cfo-chat', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ message: msg, userId: user.id }),
+        body:    JSON.stringify({
+          message: msg,
+          businessContext: profile || {},
+          history,
+        }),
       })
       const data = await res.json()
-      setMessages(prev => [...prev, {
-        role:    'assistant',
-        content: data.error ? `⚠️ ${data.error}` : data.response,
-      }])
+      const aiContent = data.error ? `⚠️ ${data.error}` : data.response
+
+      setMessages(prev => [...prev, { role: 'assistant', content: aiContent }])
+
+      // Persist both messages to Supabase from the frontend
+      if (!data.error && user) {
+        await supabase.from('ai_chat_history').insert([
+          { user_id: user.id, role: 'user',      content: msg       },
+          { user_id: user.id, role: 'assistant', content: aiContent },
+        ])
+      }
     } catch (err) {
       setMessages(prev => [...prev, {
         role:    'assistant',
