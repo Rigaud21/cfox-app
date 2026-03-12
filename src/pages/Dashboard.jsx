@@ -324,9 +324,9 @@ export default function Dashboard() {
         .from('business_profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single()
+        .maybeSingle()
 
-      if (!prof || !prof.onboarding_complete) {
+      if (!prof) {
         navigate('/onboarding')
         return
       }
@@ -336,7 +336,7 @@ export default function Dashboard() {
         .from('plaid_connections')
         .select('item_id')
         .eq('user_id', user.id)
-        .single()
+        .maybeSingle()
 
       if (conn) {
         setBankConnected(true)

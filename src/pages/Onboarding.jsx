@@ -318,6 +318,7 @@ export default function Onboarding() {
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(null)
   const [formData, setFormData] = useState({
     businessName: '',
     industry: '',
@@ -329,20 +330,40 @@ export default function Onboarding() {
 
   const updateField = (key, val) => setFormData(f => ({ ...f, [key]: val }))
 
-  const saveProfile = async (skipToReady = false) => {
+  const saveProfile = async () => {
     setSaving(true)
-    await supabase.from('business_profiles').upsert({
-      user_id: user.id,
-      business_name: formData.businessName,
-      industry: formData.industry,
-      employee_count: formData.employeeCount,
-      revenue_range: formData.revenueRange,
-      accounting_tool: formData.accountingTool,
-      goal: formData.goal,
+    setSaveError(null)
+
+    const payload = {
+      user_id:          user.id,
+      business_name:    formData.businessName,
+      industry:         formData.industry,
+      employee_count:   formData.employeeCount,
+      revenue_range:    formData.revenueRange,
+      accounting_tool:  formData.accountingTool,
+      goal:             formData.goal,
       onboarding_complete: true,
-    }, { onConflict: 'user_id' })
+    }
+
+    // Check first — avoids needing a DB-level UNIQUE constraint for upsert
+    const { data: existing } = await supabase
+      .from('business_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    const { error } = existing
+      ? await supabase.from('business_profiles').update(payload).eq('user_id', user.id)
+      : await supabase.from('business_profiles').insert(payload)
+
     setSaving(false)
-    setStep(skipToReady ? 4 : step + 1)
+
+    if (error) {
+      setSaveError(`Could not save your profile: ${error.message}. Please try again.`)
+      return
+    }
+
+    setStep(s => s + 1)
   }
 
   const handleNext = () => {
@@ -355,11 +376,25 @@ export default function Onboarding() {
 
   const handleBack = () => setStep(s => s - 1)
 
+  // Profile was already saved at step 2 — just mark complete and advance
   const handleSkipBank = async () => {
-    await supabase.from('business_profiles').upsert({
-      user_id: user.id,
-      onboarding_complete: true,
-    }, { onConflict: 'user_id' })
+    setSaving(true)
+    setSaveError(null)
+
+    const { error } = await supabase
+      .from('business_profiles')
+      .update({ onboarding_complete: true })
+      .eq('user_id', user.id)
+
+    // If no row exists yet (edge case), insert a minimal row
+    if (error) {
+      await supabase.from('business_profiles').insert({
+        user_id: user.id,
+        onboarding_complete: true,
+      })
+    }
+
+    setSaving(false)
     setStep(4)
   }
 
@@ -399,6 +434,11 @@ export default function Onboarding() {
 
         {/* Step card */}
         <div className="border border-[#2e2e2e] bg-[#1e1e1e] p-8">
+          {saveError && (
+            <div className="flex items-start gap-3 border border-red-500/30 bg-red-500/10 px-4 py-3 mb-6">
+              <span className="text-red-400 text-xs font-barlow leading-relaxed">{saveError}</span>
+            </div>
+          )}
           {step === 0 && <StepWelcome user={user} onNext={handleNext} />}
           {step === 1 && (
             <StepBusinessProfile
