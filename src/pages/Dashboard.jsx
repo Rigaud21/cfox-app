@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import {
   LayoutDashboard, TrendingUp, DollarSign, Bot, Target,
   AlertTriangle, Settings, LogOut, Menu, X, Bell,
-  Landmark, Loader, ChevronDown, User,
+  Landmark, Loader, ChevronDown, User, Wallet,
 } from 'lucide-react'
 import { useAuth }           from '../context/AuthContext'
 import { supabase }          from '../supabaseClient'
@@ -12,16 +12,18 @@ import OverviewTab   from '../components/dashboard/OverviewTab'
 import CashFlowTab   from '../components/dashboard/CashFlowTab'
 import ExpensesTab   from '../components/dashboard/ExpensesTab'
 import AICFOChat     from '../components/dashboard/AICFOChat'
-import ScenariosTab  from '../components/dashboard/ScenariosTab'
-import AlertsTab     from '../components/dashboard/AlertsTab'
+import ScenariosTab   from '../components/dashboard/ScenariosTab'
+import SmartMoneyTab  from '../components/dashboard/SmartMoneyTab'
+import AlertsTab      from '../components/dashboard/AlertsTab'
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Overview'  },
   { icon: TrendingUp,      label: 'Cash Flow' },
   { icon: DollarSign,      label: 'Expenses'  },
   { icon: Bot,             label: 'AI CFO'    },
-  { icon: Target,          label: 'Scenarios' },
-  { icon: AlertTriangle,   label: 'Alerts'    },
+  { icon: Target,          label: 'Scenarios'    },
+  { icon: Wallet,          label: 'Smart Money'  },
+  { icon: AlertTriangle,   label: 'Alerts'       },
   { icon: Settings,        label: 'Settings'  },
 ]
 
@@ -403,8 +405,9 @@ export default function Dashboard() {
             {active === 'Cash Flow' && <CashFlowTab  bankConnected={bankConnected} transactions={transactions} dateRange={dateRange} />}
             {active === 'Expenses'  && <ExpensesTab  bankConnected={bankConnected} transactions={transactions} />}
             {active === 'AI CFO'    && <AICFOChat    user={user} profile={profile} />}
-            {active === 'Scenarios' && <ScenariosTab user={user} profile={profile} />}
-            {active === 'Alerts'    && <AlertsTab    bankConnected={bankConnected} transactions={transactions} onTabChange={setActive} />}
+            {active === 'Scenarios'    && <ScenariosTab   user={user} profile={profile} />}
+            {active === 'Smart Money'  && <SmartMoneyTab  user={user} profile={profile} />}
+            {active === 'Alerts'       && <AlertsTab      bankConnected={bankConnected} transactions={transactions} onTabChange={setActive} />}
             {active === 'Settings'  && <SettingsSection user={user} profile={profile} />}
           </div>
         </main>
