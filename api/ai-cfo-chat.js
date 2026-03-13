@@ -1,23 +1,18 @@
 export const config = { runtime: 'edge' }
 
-const json = (body, status = 200) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  })
-
 export default async function handler(req) {
-  console.log('Key exists:', !!process.env.ANTHROPIC_API_KEY)
+  console.log('ai-cfo function called')
+  console.log('Key check:', !!process.env.ANTHROPIC_API_KEY)
 
   if (req.method !== 'POST') {
-    return json({ error: 'Method not allowed' }, 405)
+    return Response.json({ error: 'Method not allowed' }, { status: 405 })
   }
 
   try {
     const { message, businessContext, history } = await req.json()
 
     if (!message) {
-      return json({ error: 'Missing message' }, 400)
+      return Response.json({ error: 'Missing message' }, { status: 400 })
     }
 
     const ctx = businessContext || {}
@@ -76,16 +71,21 @@ Your instructions:
 
     if (!anthropicRes.ok) {
       const errText = await anthropicRes.text()
-      console.error('Anthropic API error:', errText)
-      return json({ error: 'AI service unavailable. Check ANTHROPIC_API_KEY in Vercel settings.' }, 500)
+      console.error('Anthropic error status:', anthropicRes.status)
+      console.error('Anthropic error body:', errText)
+      // Return the real Anthropic error so it's visible in the UI for debugging
+      return Response.json(
+        { error: `Anthropic ${anthropicRes.status}: ${errText}` },
+        { status: 500 }
+      )
     }
 
     const data = await anthropicRes.json()
     const response = data.content?.[0]?.text || 'Unable to generate a response.'
 
-    return json({ response })
+    return Response.json({ response })
   } catch (err) {
     console.error('AI CFO handler error:', err)
-    return json({ error: `Internal server error: ${err.message}` }, 500)
+    return Response.json({ error: `Internal server error: ${err.message}` }, { status: 500 })
   }
 }
