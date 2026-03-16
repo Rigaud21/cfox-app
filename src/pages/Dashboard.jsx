@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import {
   LayoutDashboard, TrendingUp, DollarSign, Bot, Target,
   AlertTriangle, Settings, LogOut, Menu, X, Bell,
-  Landmark, Loader, ChevronDown, User, Wallet,
+  Landmark, Loader, ChevronDown, User, Wallet, Sun, Moon,
 } from 'lucide-react'
 import { useAuth }           from '../context/AuthContext'
 import { supabase }          from '../supabaseClient'
@@ -141,7 +141,7 @@ function Sidebar({ active, setActive, open, setOpen, user, profile, onSignOut, b
 }
 
 /* ─── Top Bar ────────────────────────────────────────────────── */
-function TopBar({ greeting, firstName, profile, dateRange, setDateRange, setActive, onMenuOpen }) {
+function TopBar({ greeting, firstName, profile, dateRange, setDateRange, setActive, onMenuOpen, darkMode, toggleDarkMode }) {
   const [rangeOpen, setRangeOpen] = useState(false)
   const currentRange = DATE_RANGES.find(r => r.value === dateRange)
 
@@ -192,6 +192,27 @@ function TopBar({ greeting, firstName, profile, dateRange, setDateRange, setActi
             </div>
           )}
         </div>
+
+        {/* Theme toggle */}
+        <button
+          onClick={toggleDarkMode}
+          aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="relative w-10 h-[22px] rounded-full bg-[#C8FF00] flex-shrink-0 cursor-pointer focus:outline-none"
+          style={{ minWidth: '2.5rem' }}
+        >
+          <span
+            className="absolute top-[3px] w-4 h-4 rounded-full bg-[#161616] flex items-center justify-center"
+            style={{
+              left: darkMode ? '3px' : '22px',
+              transition: 'left 0.3s ease',
+            }}
+          >
+            {darkMode
+              ? <Moon size={8} style={{ color: '#C8FF00' }} />
+              : <Sun  size={8} style={{ color: '#C8FF00' }} />
+            }
+          </span>
+        </button>
 
         {/* Notification bell */}
         <div className="relative">
@@ -278,6 +299,23 @@ export default function Dashboard() {
   const [dateRange,        setDateRange]        = useState('30d')
   const [checkingProfile,  setCheckingProfile]  = useState(true)
   const [pendingConnect,   setPendingConnect]   = useState(false)
+  const [darkMode,         setDarkMode]         = useState(() => {
+    const saved = localStorage.getItem('cfox-theme')
+    return saved ? saved === 'dark' : true
+  })
+  const rootRef = useRef(null)
+
+  const toggleDarkMode = useCallback(() => {
+    if (rootRef.current) {
+      rootRef.current.classList.add('theme-transitioning')
+      setTimeout(() => rootRef.current?.classList.remove('theme-transitioning'), 350)
+    }
+    setDarkMode(prev => {
+      const next = !prev
+      localStorage.setItem('cfox-theme', next ? 'dark' : 'light')
+      return next
+    })
+  }, [])
 
   // Plaid
   const { linkToken, fetchLinkToken } = useLinkToken()
@@ -375,7 +413,10 @@ export default function Dashboard() {
   const greeting  = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#161616]">
+    <div
+      ref={rootRef}
+      className={`flex h-screen overflow-hidden ${darkMode ? 'theme-dark bg-[#161616]' : 'theme-light bg-[#F8F9FA]'}`}
+    >
       <Sidebar
         active={active}
         setActive={setActive}
@@ -397,6 +438,8 @@ export default function Dashboard() {
           setDateRange={setDateRange}
           setActive={setActive}
           onMenuOpen={() => setSidebarOpen(true)}
+          darkMode={darkMode}
+          toggleDarkMode={toggleDarkMode}
         />
 
         <main className="flex-1 overflow-y-auto">
