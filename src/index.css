@@ -69,6 +69,51 @@
   }
 }
 
+/* ── Uiverse.io toggle switch (by solanodz) ───────────────── */
+.switch {
+  font-size: 17px;
+  position: relative;
+  display: inline-block;
+  width: 3.5em;
+  height: 2em;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgb(255, 255, 255);
+  transition: .5s;
+  border-radius: 0px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 1.4em;
+  width: 1.4em;
+  border-radius: 0px;
+  left: 0.3em;
+  bottom: 0.3em;
+  background-color: rgb(0, 0, 0);
+  transition: .5s;
+}
+.switch input:checked + .slider {
+  background-color: #C8FF00;
+}
+.switch input:focus + .slider {
+  box-shadow: 0 0 1px #000000;
+}
+.switch input:checked + .slider:before {
+  transform: translateX(1.5em);
+}
+
 /* ── Smooth transitions during theme switch ───────────────── */
 .theme-transitioning * {
   transition:
@@ -79,84 +124,82 @@
 }
 
 /* ── Light Mode Overrides ─────────────────────────────────── */
-/* Sidebar (aside) always stays dark — these rules intentionally
-   scope to header and main so aside is never affected.         */
+/* Sidebar (aside) always stays dark — rules scoped to header
+   and main so aside is never affected.                        */
 
 /* Scrollbar */
-.theme-light ::-webkit-scrollbar-track  { background: #F8F9FA; }
-.theme-light ::-webkit-scrollbar-thumb  { background: #E5E7EB; }
+.light-mode ::-webkit-scrollbar-track { background: #F8F9FA; }
+.light-mode ::-webkit-scrollbar-thumb { background: #E5E7EB; }
 
 /* ── Top bar ── */
-.theme-light header {
+.light-mode header {
   background-color: #FFFFFF !important;
   border-bottom-color: #E5E7EB !important;
 }
-.theme-light header .bg-\[\#1e1e1e\] {
+.light-mode header .bg-\[\#1e1e1e\] {
   background-color: #FFFFFF !important;
   border-color: #E5E7EB !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.05) !important;
 }
-.theme-light header .border-\[\#2e2e2e\] { border-color: #E5E7EB !important; }
-.theme-light header .text-white          { color: #111827 !important; }
-.theme-light header .text-white\/80      { color: rgba(17,24,39,0.8) !important; }
-.theme-light header .text-white\/60      { color: rgba(17,24,39,0.6) !important; }
-.theme-light header .text-white\/50      { color: #6B7280 !important; }
-.theme-light header .text-white\/40      { color: #9CA3AF !important; }
-.theme-light header .text-white\/30      { color: #D1D5DB !important; }
-.theme-light header .text-white\/20      { color: rgba(17,24,39,0.2) !important; }
-.theme-light header .hover\:text-white:hover { color: #111827 !important; }
+.light-mode header .border-\[\#2e2e2e\]      { border-color: #E5E7EB !important; }
+.light-mode header .text-white               { color: #111827 !important; }
+.light-mode header .text-white\/80           { color: rgba(17,24,39,0.8) !important; }
+.light-mode header .text-white\/60           { color: rgba(17,24,39,0.6) !important; }
+.light-mode header .text-white\/50           { color: #6B7280 !important; }
+.light-mode header .text-white\/40           { color: #9CA3AF !important; }
+.light-mode header .text-white\/30           { color: #D1D5DB !important; }
+.light-mode header .text-white\/20           { color: rgba(17,24,39,0.2) !important; }
+.light-mode header .hover\:text-white:hover  { color: #111827 !important; }
 
 /* ── Main content area ── */
-.theme-light main { background-color: #F8F9FA !important; color: #111827; }
+.light-mode main { background-color: #F8F9FA !important; color: #111827; }
 
 /* Backgrounds */
-.theme-light main .bg-\[\#161616\]  { background-color: #F8F9FA !important; }
-.theme-light main .bg-\[\#1a1a1a\]  { background-color: #FFFFFF !important; }
-.theme-light main .bg-\[\#1e1e1e\]  {
+.light-mode main .bg-\[\#161616\] { background-color: #F8F9FA !important; }
+.light-mode main .bg-\[\#1a1a1a\] { background-color: #FFFFFF !important; }
+.light-mode main .bg-\[\#1e1e1e\] {
   background-color: #FFFFFF !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06) !important;
 }
-.theme-light main .bg-\[\#242424\]  {
-  background-color: #F3F4F6 !important;
-}
-.theme-light main .hover\:bg-\[\#242424\]:hover { background-color: #F9FAFB !important; }
-.theme-light main .hover\:bg-white\/5:hover     { background-color: rgba(0,0,0,0.03) !important; }
-.theme-light main .hover\:bg-white\/\[0\.03\]:hover { background-color: rgba(0,0,0,0.02) !important; }
+.light-mode main .bg-\[\#242424\] { background-color: #F3F4F6 !important; }
+.light-mode main .hover\:bg-\[\#242424\]:hover      { background-color: #F9FAFB !important; }
+.light-mode main .hover\:bg-white\/5:hover          { background-color: rgba(0,0,0,0.03) !important; }
+.light-mode main .hover\:bg-white\/\[0\.03\]:hover  { background-color: rgba(0,0,0,0.02) !important; }
 
 /* Borders */
-.theme-light main .bg-\[\#2e2e2e\]     { background-color: #E5E7EB !important; }
-.theme-light main .border-\[\#2e2e2e\] { border-color: #E5E7EB !important; }
-.theme-light main .divide-\[\#2e2e2e\] { border-color: #E5E7EB !important; }
+.light-mode main .bg-\[\#2e2e2e\]     { background-color: #E5E7EB !important; }
+.light-mode main .border-\[\#2e2e2e\] { border-color: #E5E7EB !important; }
+.light-mode main .divide-\[\#2e2e2e\] { border-color: #E5E7EB !important; }
 
 /* Text */
-.theme-light main .text-white    { color: #111827 !important; }
-.theme-light main .text-white\/80 { color: rgba(17,24,39,0.8) !important; }
-.theme-light main .text-white\/70 { color: rgba(17,24,39,0.7) !important; }
-.theme-light main .text-white\/60 { color: rgba(17,24,39,0.6) !important; }
-.theme-light main .text-white\/50 { color: #6B7280 !important; }
-.theme-light main .text-white\/40 { color: #9CA3AF !important; }
-.theme-light main .text-white\/30 { color: #9CA3AF !important; }
-.theme-light main .text-white\/20 { color: #D1D5DB !important; }
-.theme-light main .hover\:text-white:hover { color: #111827 !important; }
+.light-mode main .text-white          { color: #111827 !important; }
+.light-mode main .text-white\/80      { color: rgba(17,24,39,0.8) !important; }
+.light-mode main .text-white\/70      { color: rgba(17,24,39,0.7) !important; }
+.light-mode main .text-white\/60      { color: rgba(17,24,39,0.6) !important; }
+.light-mode main .text-white\/50      { color: #6B7280 !important; }
+.light-mode main .text-white\/40      { color: #9CA3AF !important; }
+.light-mode main .text-white\/30      { color: #9CA3AF !important; }
+.light-mode main .text-white\/20      { color: #D1D5DB !important; }
+.light-mode main .hover\:text-white:hover { color: #111827 !important; }
 
-/* Delta / accent text — improve contrast on white background */
-.theme-light main .text-\[\#C8FF00\] { color: #16A34A !important; }
-.theme-light main .text-red-400      { color: #DC2626 !important; }
-.theme-light main .text-\[\#ff4d4d\] { color: #DC2626 !important; }
+/* Delta / accent text — improve contrast on white */
+.light-mode main .text-\[\#C8FF00\] { color: #16A34A !important; }
+.light-mode main .text-red-400      { color: #DC2626 !important; }
+.light-mode main .text-\[\#ff4d4d\] { color: #DC2626 !important; }
 
-/* Accent icon borders that use lime */
-.theme-light main .border-\[\#C8FF00\]\/40 { border-color: rgba(200,255,0,0.3) !important; }
+/* Accent icon borders */
+.light-mode main .border-\[\#C8FF00\]\/40 { border-color: rgba(200,255,0,0.3) !important; }
 
-/* Form inputs (Settings section lives inside main) */
-.theme-light .form-input {
+/* Form inputs & utility classes */
+.light-mode .form-input {
   background-color: #FFFFFF;
   border-color: #E5E7EB;
   color: #111827;
 }
-.theme-light .form-input::placeholder { color: rgba(107,114,128,0.5); }
-.theme-light .form-label              { color: #6B7280; }
-.theme-light .card {
+.light-mode .form-input::placeholder { color: rgba(107,114,128,0.5); }
+.light-mode .form-label              { color: #6B7280; }
+.light-mode .card {
   background-color: #FFFFFF;
   border-color: #E5E7EB;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }

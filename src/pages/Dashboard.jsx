@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import {
   LayoutDashboard, TrendingUp, DollarSign, Bot, Target,
   AlertTriangle, Settings, LogOut, Menu, X, Bell,
-  Landmark, Loader, ChevronDown, User, Wallet, Sun, Moon,
+  Landmark, Loader, ChevronDown, User, Wallet,
 } from 'lucide-react'
 import { useAuth }           from '../context/AuthContext'
 import { supabase }          from '../supabaseClient'
@@ -194,25 +194,17 @@ function TopBar({ greeting, firstName, profile, dateRange, setDateRange, setActi
         </div>
 
         {/* Theme toggle */}
-        <button
-          onClick={toggleDarkMode}
-          aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-          className="relative w-10 h-[22px] rounded-full bg-[#C8FF00] flex-shrink-0 cursor-pointer focus:outline-none"
-          style={{ minWidth: '2.5rem' }}
-        >
-          <span
-            className="absolute top-[3px] w-4 h-4 rounded-full bg-[#161616] flex items-center justify-center"
-            style={{
-              left: darkMode ? '3px' : '22px',
-              transition: 'left 0.3s ease',
-            }}
-          >
-            {darkMode
-              ? <Moon size={8} style={{ color: '#C8FF00' }} />
-              : <Sun  size={8} style={{ color: '#C8FF00' }} />
-            }
-          </span>
-        </button>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <span className="text-sm leading-none">{darkMode ? '🌙' : '☀️'}</span>
+          <label className="switch">
+            <input
+              type="checkbox"
+              checked={!darkMode}
+              onChange={toggleDarkMode}
+            />
+            <span className="slider" />
+          </label>
+        </div>
 
         {/* Notification bell */}
         <div className="relative">
@@ -415,7 +407,7 @@ export default function Dashboard() {
   return (
     <div
       ref={rootRef}
-      className={`flex h-screen overflow-hidden ${darkMode ? 'theme-dark bg-[#161616]' : 'theme-light bg-[#F8F9FA]'}`}
+      className={`flex h-screen overflow-hidden ${darkMode ? 'bg-[#161616]' : 'light-mode bg-[#F8F9FA]'}`}
     >
       <Sidebar
         active={active}
