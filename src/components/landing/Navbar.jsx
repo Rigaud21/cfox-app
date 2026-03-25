@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
+import { useTheme } from '../../context/ThemeContext'
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
+  const { darkMode, toggleDarkMode } = useTheme()
 
   const scrollToWaitlist = () => {
     document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })
@@ -55,6 +57,15 @@ export default function Navbar() {
           >
             Demo
           </Link>
+          {/* Theme toggle */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm leading-none">{darkMode ? '🌙' : '☀️'}</span>
+            <label className="switch">
+              <input type="checkbox" checked={!darkMode} onChange={toggleDarkMode} />
+              <span className="slider" />
+            </label>
+          </div>
+
           <Link to="/signup" className="btn-primary text-xs py-2 px-5">
             Get Early Access
           </Link>
@@ -87,6 +98,14 @@ export default function Navbar() {
           <Link to="/signup" onClick={() => setOpen(false)} className="btn-primary text-xs w-full text-center">
             Get Early Access
           </Link>
+          {/* Theme toggle */}
+          <div className="flex items-center gap-2 pt-1">
+            <span className="text-sm leading-none">{darkMode ? '🌙' : '☀️'}</span>
+            <label className="switch">
+              <input type="checkbox" checked={!darkMode} onChange={toggleDarkMode} />
+              <span className="slider" />
+            </label>
+          </div>
         </div>
       )}
     </nav>

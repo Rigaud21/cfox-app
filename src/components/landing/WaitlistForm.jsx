@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { CheckCircle, ArrowRight, Loader, AlertCircle } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { ArrowRight, Loader, AlertCircle } from 'lucide-react'
 import { supabase } from '../../supabaseClient'
 
 const industries = [
@@ -25,8 +26,8 @@ const initialForm = {
 }
 
 export default function WaitlistForm() {
+  const navigate = useNavigate()
   const [form, setForm] = useState(initialForm)
-  const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState(null)
@@ -92,26 +93,7 @@ export default function WaitlistForm() {
       return
     }
 
-    setSubmitted(true)
-  }
-
-  if (submitted) {
-    return (
-      <section id="waitlist" className="py-24 sm:py-32 border-t border-[#2e2e2e]">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 text-center">
-          <CheckCircle size={48} className="text-[#C8FF00] mx-auto mb-6" />
-          <h2 className="font-barlow-condensed font-black uppercase text-5xl sm:text-6xl text-white mb-4 leading-none">
-            You're In,{' '}
-            <span className="text-[#C8FF00]">{form.firstName}!</span>
-          </h2>
-          <p className="font-barlow text-white/50 text-lg leading-relaxed max-w-xl mx-auto">
-            Thank you for joining the CFO-X waitlist. We'll keep you updated with everything
-            that's coming — early access, launch news, and founding member perks. Stay tuned,
-            this is just the beginning.
-          </p>
-        </div>
-      </section>
-    )
+    navigate('/waitlist-confirmed')
   }
 
   return (

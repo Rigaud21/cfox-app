@@ -49,41 +49,35 @@ Your instructions:
 - If asked about growth: reference +12.4% MoM revenue trend.
 - If asked about cash: always mention the 14-month runway and $17,400 monthly net.`
 
-    const allMessages = [
+    const messages = [
       ...(history || []),
       { role: 'user', content: message },
     ]
 
-    const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
+        'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1024,
         system: systemPrompt,
-        messages: allMessages,
-      }),
+        messages: messages
+      })
     })
 
-    if (!anthropicRes.ok) {
-      const errText = await anthropicRes.text()
-      console.error('Anthropic error status:', anthropicRes.status)
-      console.error('Anthropic error body:', errText)
-      // Return the real Anthropic error so it's visible in the UI for debugging
-      return Response.json(
-        { error: `Anthropic ${anthropicRes.status}: ${errText}` },
-        { status: 500 }
-      )
+    if (!response.ok) {
+      const error = await response.json()
+      return Response.json({ error: error.error.message }, { status: 400 })
     }
 
-    const data = await anthropicRes.json()
-    const response = data.content?.[0]?.text || 'Unable to generate a response.'
-
-    return Response.json({ response })
+    const data = await response.json()
+    return Response.json({
+      message: data.content[0].text
+    })
   } catch (err) {
     console.error('AI CFO handler error:', err)
     return Response.json({ error: `Internal server error: ${err.message}` }, { status: 500 })

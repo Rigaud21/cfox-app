@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import Navbar from '../components/landing/Navbar'
 import Footer from '../components/landing/Footer'
+import { useTheme } from '../context/ThemeContext'
 
 /* ─── Scroll Reveal ──────────────────────────────────────────── */
 function useReveal(threshold = 0.1) {
@@ -339,6 +340,8 @@ function Founder() {
 /* ─── Mission ────────────────────────────────────────────────── */
 function Mission() {
   const [ref, vis] = useReveal()
+  const { darkMode } = useTheme()
+  const primaryText = darkMode ? '#ffffff' : '#111827'
   return (
     <section ref={ref} className="py-24 sm:py-32 border-t border-[#2e2e2e] overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -351,10 +354,10 @@ function Mission() {
         {/* Stacked mission text */}
         <div style={fade(vis, 80)} className="mb-20">
           {[
-            { text: 'Kill', color: '#ffffff', outline: false },
-            { text: 'Financial', color: '#C8FF00', outline: false },
-            { text: 'Blindspots', color: 'transparent', outline: true },
-            { text: 'Forever.', color: '#ffffff', outline: false },
+            { text: 'Kill',       color: primaryText,   outline: false },
+            { text: 'Financial',  color: '#C8FF00',     outline: false },
+            { text: 'Blindspots', color: 'transparent', outline: true  },
+            { text: 'Forever.',   color: primaryText,   outline: false },
           ].map((line) => (
             <div
               key={line.text}

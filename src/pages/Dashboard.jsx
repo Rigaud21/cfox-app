@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import {
   LayoutDashboard, TrendingUp, DollarSign, Bot, Target,
@@ -6,6 +6,7 @@ import {
   Landmark, Loader, ChevronDown, User, Wallet,
 } from 'lucide-react'
 import { useAuth }           from '../context/AuthContext'
+import { useTheme }          from '../context/ThemeContext'
 import { supabase }          from '../supabaseClient'
 import { useLinkToken, usePlaidConnect } from '../hooks/usePlaid'
 import OverviewTab   from '../components/dashboard/OverviewTab'
@@ -127,12 +128,12 @@ function Sidebar({ active, setActive, open, setOpen, user, profile, onSignOut, b
 
   return (
     <>
-      <aside className="hidden lg:flex flex-col w-56 flex-shrink-0 h-screen sticky top-0 border-r border-[#2e2e2e] bg-[#1e1e1e]">
+      <aside className="sidebar-dark hidden lg:flex flex-col w-56 flex-shrink-0 h-screen sticky top-0 border-r border-[#2e2e2e] bg-[#1e1e1e]">
         {content}
       </aside>
       {open && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
-          <div className="w-60 h-full bg-[#1e1e1e] border-r border-[#2e2e2e] flex flex-col">{content}</div>
+          <div className="sidebar-dark w-60 h-full bg-[#1e1e1e] border-r border-[#2e2e2e] flex flex-col">{content}</div>
           <div className="flex-1 bg-black/60" onClick={() => setOpen(false)} />
         </div>
       )}
@@ -291,23 +292,7 @@ export default function Dashboard() {
   const [dateRange,        setDateRange]        = useState('30d')
   const [checkingProfile,  setCheckingProfile]  = useState(true)
   const [pendingConnect,   setPendingConnect]   = useState(false)
-  const [darkMode,         setDarkMode]         = useState(() => {
-    const saved = localStorage.getItem('cfox-theme')
-    return saved ? saved === 'dark' : true
-  })
-  const rootRef = useRef(null)
-
-  const toggleDarkMode = useCallback(() => {
-    if (rootRef.current) {
-      rootRef.current.classList.add('theme-transitioning')
-      setTimeout(() => rootRef.current?.classList.remove('theme-transitioning'), 350)
-    }
-    setDarkMode(prev => {
-      const next = !prev
-      localStorage.setItem('cfox-theme', next ? 'dark' : 'light')
-      return next
-    })
-  }, [])
+  const { darkMode, toggleDarkMode } = useTheme()
 
   // Plaid
   const { linkToken, fetchLinkToken } = useLinkToken()
@@ -405,10 +390,7 @@ export default function Dashboard() {
   const greeting  = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 
   return (
-    <div
-      ref={rootRef}
-      className={`flex h-screen overflow-hidden ${darkMode ? 'bg-[#161616]' : 'light-mode bg-[#F8F9FA]'}`}
-    >
+    <div className="flex h-screen overflow-hidden bg-[#161616]">
       <Sidebar
         active={active}
         setActive={setActive}
