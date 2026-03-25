@@ -7,7 +7,7 @@ import Footer from '../components/landing/Footer'
 
 export default function LandingPage() {
   return (
-    <div className="bg-[#161616] min-h-screen">
+    <div className="bg-[#161616] min-h-screen overflow-x-hidden">
       <Navbar />
       <Hero />
       <About />
