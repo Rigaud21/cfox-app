@@ -213,3 +213,10 @@
 .light-mode .sidebar-dark .text-\[\#C8FF00\]            { color: #C8FF00 !important; }
 .light-mode .sidebar-dark .text-red-400                 { color: #f87171 !important; }
 .light-mode .sidebar-dark .text-red-500                 { color: #ef4444 !important; }
+
+/* ── Toast slide-up animation ─────────────────────────────── */
+@keyframes slide-up {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.animate-slide-up { animation: slide-up 0.22s ease-out both; }

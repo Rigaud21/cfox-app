@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import {
   LayoutDashboard, TrendingUp, DollarSign, Bot, Target,
   AlertTriangle, Settings, LogOut, Menu, X, Bell,
-  Landmark, Loader, ChevronDown, User, Wallet,
+  Landmark, Loader, ChevronDown, User, Wallet, FileText,
 } from 'lucide-react'
 import { useAuth }           from '../context/AuthContext'
 import { useTheme }          from '../context/ThemeContext'
@@ -16,16 +16,18 @@ import AICFOChat     from '../components/dashboard/AICFOChat'
 import ScenariosTab   from '../components/dashboard/ScenariosTab'
 import SmartMoneyTab  from '../components/dashboard/SmartMoneyTab'
 import AlertsTab      from '../components/dashboard/AlertsTab'
+import ReportsTab    from '../components/dashboard/ReportsTab'
 
 const NAV_ITEMS = [
-  { icon: LayoutDashboard, label: 'Overview'  },
-  { icon: TrendingUp,      label: 'Cash Flow' },
-  { icon: DollarSign,      label: 'Expenses'  },
-  { icon: Bot,             label: 'AI CFO'    },
-  { icon: Target,          label: 'Scenarios'    },
-  { icon: Wallet,          label: 'Smart Money'  },
-  { icon: AlertTriangle,   label: 'Alerts'       },
-  { icon: Settings,        label: 'Settings'  },
+  { icon: LayoutDashboard, label: 'Overview'    },
+  { icon: TrendingUp,      label: 'Cash Flow'   },
+  { icon: DollarSign,      label: 'Expenses'    },
+  { icon: Bot,             label: 'AI CFO'      },
+  { icon: Target,          label: 'Scenarios'   },
+  { icon: Wallet,          label: 'Smart Money' },
+  { icon: FileText,        label: 'Reports'     },
+  { icon: AlertTriangle,   label: 'Alerts'      },
+  { icon: Settings,        label: 'Settings'    },
 ]
 
 const DATE_RANGES = [
@@ -424,6 +426,7 @@ export default function Dashboard() {
             {active === 'AI CFO'    && <AICFOChat    user={user} profile={profile} />}
             {active === 'Scenarios'    && <ScenariosTab   user={user} profile={profile} />}
             {active === 'Smart Money'  && <SmartMoneyTab  user={user} profile={profile} />}
+            {active === 'Reports'      && <ReportsTab     profile={profile} />}
             {active === 'Alerts'       && <AlertsTab      bankConnected={bankConnected} transactions={transactions} onTabChange={setActive} />}
             {active === 'Settings'  && <SettingsSection user={user} profile={profile} />}
           </div>
